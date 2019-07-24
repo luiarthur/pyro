@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 from pyro.distributions.distribution import Distribution
 from pyro.poutine.util import is_validation_enabled
@@ -46,8 +47,10 @@ class _Subsample(Distribution):
         if subsample_size is None or subsample_size >= self.size:
             result = jit_compatible_arange(self.size, device=self.device)
         else:
-            result = torch.multinomial(torch.ones(self.size), self.subsample_size,
-                                       replacement=False).to(self.device)
+            # result = torch.multinomial(torch.ones(self.size), self.subsample_size,
+            #                            replacement=False).to(self.device)
+            np_result = np.random.choice(self.size, self.subsample_size, replace=False)
+            result = torch.tensor(np_result).to(self.device)
         return result.cuda() if self.use_cuda else result
 
     def log_prob(self, x):
